@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BASE_URL = "https://playbook-pro-1.preview.emergentagent.com/api"
+BASE_URL = "https://hoop-strategy.preview.emergentagent.com/api"
 TIMEOUT = 30
 
 class PlaybookProTester:
