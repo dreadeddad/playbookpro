@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
+import { DEMO_MODE } from '../lib/firebase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserData {
   uid: string;
@@ -12,7 +11,7 @@ interface UserData {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: any | null;
   userData: UserData | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -35,78 +34,108 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      
-      if (user) {
-        // Fetch additional user data from Firestore
+    if (DEMO_MODE) {
+      // Demo mode - check for stored demo user
+      const checkDemoUser = async () => {
         try {
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
-          
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            setUserData({
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName,
-              role: data.role,
-              createdAt: data.createdAt?.toDate() || new Date()
-            });
+          const storedUser = await AsyncStorage.getItem('demo_user');
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+            setUserData(parsedUser);
           }
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.log('No demo user found');
         }
-      } else {
-        setUserData(null);
-      }
-      
+        setLoading(false);
+      };
+      checkDemoUser();
+    } else {
+      // Real Firebase auth would go here
       setLoading(false);
-    });
-
-    return unsubscribe;
+    }
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      throw error;
+    if (DEMO_MODE) {
+      // Demo mode sign in
+      const demoUser = {
+        uid: `demo_${Date.now()}`,
+        email,
+        displayName: email.split('@')[0],
+        role: 'player' as 'coach' | 'player',
+        createdAt: new Date()
+      };
+      
+      await AsyncStorage.setItem('demo_user', JSON.stringify(demoUser));
+      setUser(demoUser);
+      setUserData(demoUser);
+      return;
     }
+    
+    // Real Firebase sign in would go here
+    throw new Error('Firebase not configured');
   };
 
   const signUp = async (email: string, password: string, displayName: string, role: 'coach' | 'player') => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      // Update the user's display name
-      await updateProfile(user, { displayName });
-      
-      // Save additional user data to Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        email: user.email,
+    if (DEMO_MODE) {
+      // Demo mode sign up
+      const demoUser = {
+        uid: `demo_${Date.now()}`,
+        email,
         displayName,
         role,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-    } catch (error) {
-      throw error;
+        createdAt: new Date()
+      };
+      
+      await AsyncStorage.setItem('demo_user', JSON.stringify(demoUser));
+      setUser(demoUser);
+      setUserData(demoUser);
+      
+      // Also create user in backend
+      try {
+        const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/users`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            firebase_uid: demoUser.uid,
+            email: demoUser.email,
+            display_name: demoUser.displayName,
+            role: demoUser.role
+          }),
+        });
+        
+        if (!response.ok) {
+          console.log('Backend user creation failed, but demo continues');
+        }
+      } catch (error) {
+        console.log('Backend user creation error:', error);
+      }
+      
+      return;
     }
+    
+    // Real Firebase sign up would go here
+    throw new Error('Firebase not configured');
   };
 
   const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      throw error;
+    if (DEMO_MODE) {
+      await AsyncStorage.removeItem('demo_user');
+      setUser(null);
+      setUserData(null);
+      return;
     }
+    
+    // Real Firebase logout would go here
+    throw new Error('Firebase not configured');
   };
 
   const value: AuthContextType = {
