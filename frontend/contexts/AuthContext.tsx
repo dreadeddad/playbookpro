@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { DEMO_MODE } from '../lib/firebase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Simple demo mode for now
+const DEMO_MODE = true;
 
 interface UserData {
   uid: string;
