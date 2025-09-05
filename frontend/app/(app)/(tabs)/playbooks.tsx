@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import PlaybookViewer from '../../../components/PlaybookViewer';
+import PlayerDetailsPanel from '../../../components/PlayerDetailsPanel';
+import GameSimulation from '../../../components/GameSimulation';
 
 interface Play {
   step_number: number;
