@@ -41,7 +41,10 @@ export default function Playbooks() {
   const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlaybook, setSelectedPlaybook] = useState<Playbook | null>(null);
-  const [currentPlayStep, setCurrentPlayStep] = useState(0);
+  const [viewMode, setViewMode] = useState<'list' | 'viewer' | 'simulation'>('list');
+  const [showPlayerDetails, setShowPlayerDetails] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<number | undefined>(undefined);
+  const [gameLog, setGameLog] = useState<string[]>([]);
 
   useEffect(() => {
     loadPlaybooks();
