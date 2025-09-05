@@ -8,21 +8,37 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
+    console.log('Index: Auth state -', { user: !!user, userData: !!userData, loading });
+    
     if (!loading) {
+      console.log('Index: Not loading, making navigation decision...');
+      
       if (user && userData) {
-        // User is authenticated, redirect to main app
+        console.log('Index: User authenticated, navigating to dashboard');
         router.replace('/(app)/(tabs)/dashboard');
       } else {
-        // User is not authenticated, redirect to auth screens
+        console.log('Index: No user, navigating to welcome');
         router.replace('/(auth)/welcome');
       }
     }
   }, [user, userData, loading, router]);
 
+  // Show loading while auth is being determined
+  if (loading) {
+    console.log('Index: Still loading auth state...');
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#FF6B35" />
+        <Text style={styles.loadingText}>Loading Playbook Pro...</Text>
+      </View>
+    );
+  }
+
+  // Show brief message while navigation is happening
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" color="#FF6B35" />
-      <Text style={styles.loadingText}>Loading Playbook Pro...</Text>
+      <Text style={styles.loadingText}>Starting App...</Text>
     </View>
   );
 }
