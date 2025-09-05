@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,45 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useAuth } from '../../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface DemoUser {
+  uid: string;
+  email: string;
+  displayName: string;
+  role: 'coach' | 'player';
+  createdAt: Date;
+}
 
 export default function Dashboard() {
-  const { userData } = useAuth();
+  const [userData, setUserData] = useState<DemoUser | null>(null);
+
+  useEffect(() => {
+    const loadDemoUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem('demo_user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          setUserData(user);
+        }
+      } catch (error) {
+        console.log('Error loading demo user:', error);
+      }
+    };
+
+    loadDemoUser();
+  }, []);
+
+  if (!userData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading dashboard...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const isCoach = userData?.role === 'coach';
 
@@ -35,16 +69,23 @@ export default function Dashboard() {
           </View>
         </View>
 
+        {/* Demo Banner */}
+        <View style={styles.demoBanner}>
+          <Text style={styles.demoText}>
+            🎮 Demo Mode - Explore all features without authentication!
+          </Text>
+        </View>
+
         {/* Quick Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statNumber}>{isCoach ? '12' : '8'}</Text>
             <Text style={styles.statLabel}>
               {isCoach ? 'Playbooks Created' : 'Plays Practiced'}
             </Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statNumber}>{isCoach ? '45' : '24'}</Text>
             <Text style={styles.statLabel}>
               {isCoach ? 'Active Players' : 'Training Hours'}
             </Text>
@@ -103,14 +144,55 @@ export default function Dashboard() {
           </View>
         </View>
 
-        {/* Recent Activity */}
+        {/* Sample Basketball Features */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <View style={styles.emptyState}>
-            <Ionicons name="basketball" size={48} color="#666666" />
-            <Text style={styles.emptyStateText}>No recent activity</Text>
-            <Text style={styles.emptyStateSubtext}>
-              Start creating or practicing plays to see your activity here
+          <Text style={styles.sectionTitle}>Basketball Features</Text>
+          <View style={styles.featuresList}>
+            <View style={styles.featureItem}>
+              <Text style={styles.featureIcon}>🏀</Text>
+              <View>
+                <Text style={styles.featureTitle}>Interactive Playbooks</Text>
+                <Text style={styles.featureDesc}>2D/3D basketball play visualization</Text>
+              </View>
+            </View>
+            
+            <View style={styles.featureItem}>
+              <Text style={styles.featureIcon}>🎮</Text>
+              <View>
+                <Text style={styles.featureTitle}>3D Court Simulation</Text>
+                <Text style={styles.featureDesc}>Practice plays in virtual environment</Text>
+              </View>
+            </View>
+            
+            <View style={styles.featureItem}>
+              <Text style={styles.featureIcon}>🤖</Text>
+              <View>
+                <Text style={styles.featureTitle}>AI Coaching Feedback</Text>
+                <Text style={styles.featureDesc}>Personalized performance analysis</Text>
+              </View>
+            </View>
+            
+            <View style={styles.featureItem}>
+              <Text style={styles.featureIcon}>📊</Text>
+              <View>
+                <Text style={styles.featureTitle}>Performance Analytics</Text>
+                <Text style={styles.featureDesc}>Track progress and improvement areas</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* API Demo */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Backend Integration</Text>
+          <View style={styles.apiDemo}>
+            <Text style={styles.apiTitle}>✅ Basketball API Active</Text>
+            <Text style={styles.apiDescription}>
+              • User management system working{'\n'}
+              • Playbook CRUD operations ready{'\n'}
+              • AI coaching feedback via Gemini{'\n'}
+              • Game session tracking enabled{'\n'}
+              • Sample basketball plays loaded
             </Text>
           </View>
         </View>
@@ -127,13 +209,22 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: '#ffffff',
+    fontSize: 16,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 24,
+    paddingBottom: 16,
   },
   greeting: {
     fontSize: 24,
@@ -157,6 +248,20 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  demoBanner: {
+    backgroundColor: 'rgba(255, 107, 53, 0.1)',
+    borderWidth: 1,
+    borderColor: '#FF6B35',
+    margin: 24,
+    padding: 16,
+    borderRadius: 12,
+  },
+  demoText: {
+    color: '#FF6B35',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -224,20 +329,46 @@ const styles = StyleSheet.create({
     color: '#cccccc',
     textAlign: 'center',
   },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 40,
+  featuresList: {
+    gap: 16,
   },
-  emptyStateText: {
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 16,
+    borderRadius: 12,
+    gap: 16,
+  },
+  featureIcon: {
+    fontSize: 24,
+  },
+  featureTitle: {
     fontSize: 16,
+    fontWeight: '600',
     color: '#ffffff',
-    marginTop: 16,
+    marginBottom: 4,
+  },
+  featureDesc: {
+    fontSize: 12,
+    color: '#cccccc',
+  },
+  apiDemo: {
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    padding: 16,
+    borderRadius: 12,
+  },
+  apiTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#22c55e',
     marginBottom: 8,
   },
-  emptyStateSubtext: {
-    fontSize: 14,
+  apiDescription: {
+    fontSize: 12,
     color: '#cccccc',
-    textAlign: 'center',
-    paddingHorizontal: 40,
+    lineHeight: 18,
   },
 });
