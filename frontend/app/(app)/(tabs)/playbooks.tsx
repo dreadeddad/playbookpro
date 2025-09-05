@@ -307,6 +307,20 @@ const styles = StyleSheet.create({
     color: '#FF6B35',
     fontWeight: '600',
   },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  simulateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  simulateButtonText: {
+    fontSize: 14,
+    color: '#10B981',
+    fontWeight: '600',
+  },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
