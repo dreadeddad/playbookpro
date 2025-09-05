@@ -1,0 +1,45 @@
+{
+  "name": "playbook-pro",
+  "version": "1.0.0",
+  "description": "Youth Basketball Coaching Platform with Interactive Playbooks and AI Feedback",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && python app.py",
+    "build": "cd frontend && npm run build",
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "start:frontend": "cd frontend && npm start",
+    "start:backend": "cd backend && gunicorn app:app --bind 0.0.0.0:5000",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && pip install -r requirements.txt",
+    "test": "cd frontend && npm test",
+    "lint": "cd frontend && npm run lint",
+    "type-check": "cd frontend && npm run type-check"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dreadeddad/playbookpro.git",
+    "branch": "main.1"
+  },
+  "keywords": [
+    "basketball",
+    "coaching",
+    "playbooks",
+    "sports",
+    "youth",
+    "ai",
+    "3d",
+    "react",
+    "nextjs",
+    "flask",
+    "firebase"
+  ],
+  "author": "Playbook Pro Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.8.0"
+  }
+}
