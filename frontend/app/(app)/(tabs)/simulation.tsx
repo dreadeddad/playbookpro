@@ -1,12 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import GameSimulation from '../../../components/GameSimulation';
+
+interface Play {
+  step_number: number;
+  description: string;
+  player_positions: Array<{
+    x: number;
+    y: number;
+    role: string;
+    responsibilities: string[];
+  }>;
+  key_actions: string[];
+}
+
+interface Playbook {
+  id: string;
+  coach_id: string;
+  title: string;
+  description: string;
+  category: string;
+  plays: Play[];
+  created_at: string;
+  is_public: boolean;
+}
 
 export default function Simulation() {
   return (
