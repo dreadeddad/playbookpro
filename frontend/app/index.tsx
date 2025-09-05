@@ -7,22 +7,28 @@ export default function Index() {
   const router = useRouter();
 
   const selectRole = async (role: 'coach' | 'player') => {
-    console.log('Selected role:', role);
+    console.log('🏀 Selected role:', role);
     
-    // Create a demo user with the selected role
-    const demoUser = {
-      uid: `demo_${role}_${Date.now()}`,
-      email: `demo@${role}.com`,
-      displayName: role === 'coach' ? 'Demo Coach' : 'Demo Player',
-      role: role,
-      createdAt: new Date()
-    };
-    
-    // Store demo user data
-    await AsyncStorage.setItem('demo_user', JSON.stringify(demoUser));
-    
-    // Navigate to dashboard
-    router.replace('/(app)/(tabs)/dashboard');
+    try {
+      // Create a demo user with the selected role
+      const demoUser = {
+        uid: `demo_${role}_${Date.now()}`,
+        email: `demo@${role}.com`,
+        displayName: role === 'coach' ? 'Demo Coach' : 'Demo Player',
+        role: role,
+        createdAt: new Date()
+      };
+      
+      console.log('🏀 Storing demo user:', demoUser);
+      // Store demo user data
+      await AsyncStorage.setItem('demo_user', JSON.stringify(demoUser));
+      
+      console.log('🏀 Navigating to dashboard...');
+      // Navigate to dashboard
+      router.replace('/(app)/(tabs)/dashboard');
+    } catch (error) {
+      console.error('🏀 Error in selectRole:', error);
+    }
   };
 
   return (
