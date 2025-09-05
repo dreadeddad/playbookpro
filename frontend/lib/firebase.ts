@@ -1,32 +1,39 @@
-// Demo mode configuration - Replace with real Firebase config when available
-const DEMO_MODE = true;
+import { initializeApp, getApps } from 'firebase/app';
+import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Placeholder Firebase config for demo
-let auth: any = null;
-let db: any = null;
-let firebaseApp: any = null;
+const firebaseConfig = {
+  apiKey: "AIzaSyBEXaaUvjFF3CTyXDT9yEc0SjtN_LNG05Y",
+  authDomain: "playbook-pro-119bb.firebaseapp.com",
+  projectId: "playbook-pro-119bb",
+  storageBucket: "playbook-pro-119bb.firebasestorage.app",
+  messagingSenderId: "153546122232",
+  appId: "1:153546122232:web:61c15dba2956955f272c0d",
+  measurementId: "G-1T8RRPY68Y"
+};
 
-if (!DEMO_MODE) {
-  // Real Firebase imports (commented out for demo)
-  // import { initializeApp, getApps } from 'firebase/app';
-  // import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
-  // import { getFirestore } from 'firebase/firestore';
-  // import AsyncStorage from '@react-native-async-storage/async-storage';
-
-  const firebaseConfig = {
-    // Add your real Firebase config here
-    apiKey: "your-api-key",
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "your-app-id"
-  };
-
-  // Initialize Firebase when not in demo mode
-  // firebaseApp = initializeApp(firebaseConfig);
-  // auth = getAuth(firebaseApp);
-  // db = getFirestore(firebaseApp);
+// Initialize Firebase
+let firebaseApp;
+if (getApps().length === 0) {
+  firebaseApp = initializeApp(firebaseConfig);
+} else {
+  firebaseApp = getApps()[0];
 }
 
-export { auth, db, firebaseApp, DEMO_MODE };
+// Initialize Auth with proper persistence handling
+let auth;
+try {
+  // For React Native, use AsyncStorage persistence
+  auth = initializeAuth(firebaseApp, {
+    persistence: getReactNativePersistence(AsyncStorage)
+  });
+} catch (error) {
+  // Auth already initialized or running on web, fallback to default
+  auth = getAuth(firebaseApp);
+}
+
+// Initialize Firestore
+const db = getFirestore(firebaseApp);
+
+export { auth, db, firebaseApp };
