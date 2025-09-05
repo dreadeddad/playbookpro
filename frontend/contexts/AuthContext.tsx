@@ -45,20 +45,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Demo mode - check for stored demo user
       const checkDemoUser = async () => {
         try {
+          console.log('AuthContext: Checking for demo user...');
           const storedUser = await AsyncStorage.getItem('demo_user');
           if (storedUser) {
             const parsedUser = JSON.parse(storedUser);
+            console.log('AuthContext: Found demo user:', parsedUser.displayName);
             setUser(parsedUser);
             setUserData(parsedUser);
+          } else {
+            console.log('AuthContext: No demo user found');
           }
         } catch (error) {
-          console.log('No demo user found');
+          console.log('AuthContext: Error checking demo user:', error);
+        } finally {
+          console.log('AuthContext: Setting loading to false');
+          setLoading(false);
         }
-        setLoading(false);
       };
       checkDemoUser();
     } else {
       // Real Firebase auth would go here
+      console.log('AuthContext: Real Firebase mode - setting loading to false');
       setLoading(false);
     }
   }, []);
