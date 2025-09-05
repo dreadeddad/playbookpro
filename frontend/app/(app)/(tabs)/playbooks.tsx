@@ -165,12 +165,23 @@ export default function Playbooks() {
                   <Text style={styles.playCount}>
                     📋 {playbook.plays.length} step{playbook.plays.length !== 1 ? 's' : ''}
                   </Text>
-                  <TouchableOpacity style={styles.viewButton}>
-                    <Text style={styles.viewButtonText}>View Play</Text>
-                    <Ionicons name="chevron-forward" size={16} color="#FF6B35" />
-                  </TouchableOpacity>
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity 
+                      style={styles.viewButton}
+                      onPress={() => selectPlaybook(playbook, 'viewer')}
+                    >
+                      <Ionicons name="eye" size={16} color="#FF6B35" />
+                      <Text style={styles.viewButtonText}>2D/3D View</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.simulateButton}
+                      onPress={() => selectPlaybook(playbook, 'simulation')}
+                    >
+                      <Ionicons name="game-controller" size={16} color="#10B981" />
+                      <Text style={styles.simulateButtonText}>Simulate</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </TouchableOpacity>
             ))}
           </View>
         ) : (
