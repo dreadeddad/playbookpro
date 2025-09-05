@@ -71,21 +71,25 @@ export default function Playbooks() {
     }
   };
 
-  const selectPlaybook = (playbook: Playbook) => {
+  const selectPlaybook = (playbook: Playbook, mode: 'viewer' | 'simulation' = 'viewer') => {
     setSelectedPlaybook(playbook);
-    setCurrentPlayStep(0);
+    setViewMode(mode);
   };
 
-  const nextStep = () => {
-    if (selectedPlaybook && currentPlayStep < selectedPlaybook.plays.length - 1) {
-      setCurrentPlayStep(currentPlayStep + 1);
-    }
+  const handlePlayerDetails = (playerIndex?: number) => {
+    setSelectedPlayer(playerIndex);
+    setShowPlayerDetails(true);
   };
 
-  const prevStep = () => {
-    if (currentPlayStep > 0) {
-      setCurrentPlayStep(currentPlayStep - 1);
-    }
+  const handleActionLog = (action: string) => {
+    setGameLog(prev => [...prev.slice(-9), `${new Date().toLocaleTimeString()}: ${action}`]);
+  };
+
+  const closeViewer = () => {
+    setSelectedPlaybook(null);
+    setViewMode('list');
+    setSelectedPlayer(undefined);
+    setGameLog([]);
   };
 
   if (loading) {
