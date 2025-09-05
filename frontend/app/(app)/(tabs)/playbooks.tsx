@@ -103,8 +103,36 @@ export default function Playbooks() {
     );
   }
 
-  if (selectedPlaybook) {
-    const currentPlay = selectedPlaybook.plays[currentPlayStep];
+  // Render Advanced 2D/3D Playbook Viewer
+  if (selectedPlaybook && viewMode === 'viewer') {
+    return (
+      <>
+        <PlaybookViewer
+          plays={selectedPlaybook.plays}
+          title={selectedPlaybook.title}
+          onClose={closeViewer}
+        />
+        <PlayerDetailsPanel
+          players={selectedPlaybook.plays[0]?.player_positions || []}
+          visible={showPlayerDetails}
+          onClose={() => setShowPlayerDetails(false)}
+          selectedPlayer={selectedPlayer}
+        />
+      </>
+    );
+  }
+
+  // Render 3D Game Simulation
+  if (selectedPlaybook && viewMode === 'simulation') {
+    return (
+      <GameSimulation
+        plays={selectedPlaybook.plays}
+        title={selectedPlaybook.title}
+        onClose={closeViewer}
+        onActionLog={handleActionLog}
+      />
+    );
+  }
     
     return (
       <SafeAreaView style={styles.container}>
