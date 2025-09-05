@@ -182,6 +182,7 @@ export default function Playbooks() {
                     </TouchableOpacity>
                   </View>
                 </View>
+              </TouchableOpacity>
             ))}
           </View>
         ) : (
