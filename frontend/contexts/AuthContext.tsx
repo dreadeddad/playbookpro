@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// Simple demo mode for now
-const DEMO_MODE = true;
+import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../lib/firebase';
 
 interface UserData {
   uid: string;
@@ -13,7 +12,7 @@ interface UserData {
 }
 
 interface AuthContextType {
-  user: any | null;
+  user: User | null;
   userData: UserData | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -36,77 +35,98 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (DEMO_MODE) {
-      // Demo mode - check for stored demo user
-      const checkDemoUser = async () => {
+    console.log('AuthContext: Setting up Firebase auth listener...');
+    
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('AuthContext: Auth state changed, user:', user?.email || 'none');
+      setUser(user);
+      
+      if (user) {
+        // Fetch additional user data from Firestore
         try {
-          console.log('AuthContext: Checking for demo user...');
-          const storedUser = await AsyncStorage.getItem('demo_user');
-          if (storedUser) {
-            const parsedUser = JSON.parse(storedUser);
-            console.log('AuthContext: Found demo user:', parsedUser.displayName);
-            setUser(parsedUser);
-            setUserData(parsedUser);
+          console.log('AuthContext: Fetching user data from Firestore...');
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            console.log('AuthContext: User data found:', data.role);
+            setUserData({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              role: data.role,
+              createdAt: data.createdAt?.toDate() || new Date()
+            });
           } else {
-            console.log('AuthContext: No demo user found');
+            console.log('AuthContext: No user data in Firestore');
+            // Create basic user data if it doesn't exist
+            const basicUserData = {
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              role: 'player' as 'coach' | 'player', // Default role
+              createdAt: new Date()
+            };
+            setUserData(basicUserData);
           }
         } catch (error) {
-          console.log('AuthContext: Error checking demo user:', error);
-        } finally {
-          console.log('AuthContext: Setting loading to false');
-          setLoading(false);
+          console.error('AuthContext: Error fetching user data:', error);
+          // Fallback user data
+          setUserData({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            role: 'player',
+            createdAt: new Date()
+          });
         }
-      };
-      checkDemoUser();
-    } else {
-      // Real Firebase auth would go here
-      console.log('AuthContext: Real Firebase mode - setting loading to false');
+      } else {
+        console.log('AuthContext: No user, clearing userData');
+        setUserData(null);
+      }
+      
+      console.log('AuthContext: Setting loading to false');
       setLoading(false);
-    }
+    });
+
+    return unsubscribe;
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    if (DEMO_MODE) {
-      // Demo mode sign in
-      const demoUser = {
-        uid: `demo_${Date.now()}`,
-        email,
-        displayName: email.split('@')[0],
-        role: 'player' as 'coach' | 'player',
-        createdAt: new Date()
-      };
-      
-      await AsyncStorage.setItem('demo_user', JSON.stringify(demoUser));
-      setUser(demoUser);
-      setUserData(demoUser);
-      return;
+    try {
+      console.log('AuthContext: Signing in user:', email);
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error('AuthContext: Sign in error:', error);
+      throw error;
     }
-    
-    // Real Firebase sign in would go here
-    throw new Error('Firebase not configured');
   };
 
   const signUp = async (email: string, password: string, displayName: string, role: 'coach' | 'player') => {
-    if (DEMO_MODE) {
-      // Demo mode sign up
-      const demoUser = {
-        uid: `demo_${Date.now()}`,
-        email,
+    try {
+      console.log('AuthContext: Signing up user:', email, 'as', role);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Update the user's display name
+      await updateProfile(user, { displayName });
+      
+      // Save additional user data to Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
         displayName,
         role,
-        createdAt: new Date()
-      };
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
       
-      await AsyncStorage.setItem('demo_user', JSON.stringify(demoUser));
-      setUser(demoUser);
-      setUserData(demoUser);
-      
-      // Also create user in backend
+      // Also create user in our backend
       try {
         const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/users`, {
           method: 'POST',
@@ -114,37 +134,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            firebase_uid: demoUser.uid,
-            email: demoUser.email,
-            display_name: demoUser.displayName,
-            role: demoUser.role
+            firebase_uid: user.uid,
+            email: user.email,
+            display_name: displayName,
+            role: role
           }),
         });
         
         if (!response.ok) {
-          console.log('Backend user creation failed, but demo continues');
+          console.log('Backend user creation failed, but Firebase user created successfully');
+        } else {
+          console.log('User created in both Firebase and backend');
         }
       } catch (error) {
         console.log('Backend user creation error:', error);
       }
       
-      return;
+    } catch (error: any) {
+      console.error('AuthContext: Sign up error:', error);
+      throw error;
     }
-    
-    // Real Firebase sign up would go here
-    throw new Error('Firebase not configured');
   };
 
   const logout = async () => {
-    if (DEMO_MODE) {
-      await AsyncStorage.removeItem('demo_user');
-      setUser(null);
-      setUserData(null);
-      return;
+    try {
+      console.log('AuthContext: Signing out user');
+      await signOut(auth);
+    } catch (error) {
+      console.error('AuthContext: Logout error:', error);
+      throw error;
     }
-    
-    // Real Firebase logout would go here
-    throw new Error('Firebase not configured');
   };
 
   const value: AuthContextType = {
