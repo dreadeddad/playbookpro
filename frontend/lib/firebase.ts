@@ -1,37 +1,32 @@
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// Demo mode configuration - Replace with real Firebase config when available
+const DEMO_MODE = true;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDsX_oPpTQobtm_SkW-N6zlRJSUOLCqmQE",
-  authDomain: "playbook-pro-demo.firebaseapp.com",
-  projectId: "playbook-pro-demo",
-  storageBucket: "playbook-pro-demo.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abc123def456"
-};
+// Placeholder Firebase config for demo
+let auth: any = null;
+let db: any = null;
+let firebaseApp: any = null;
 
-// Initialize Firebase
-let firebaseApp;
-if (getApps().length === 0) {
-  firebaseApp = initializeApp(firebaseConfig);
-} else {
-  firebaseApp = getApps()[0];
+if (!DEMO_MODE) {
+  // Real Firebase imports (commented out for demo)
+  // import { initializeApp, getApps } from 'firebase/app';
+  // import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
+  // import { getFirestore } from 'firebase/firestore';
+  // import AsyncStorage from '@react-native-async-storage/async-storage';
+
+  const firebaseConfig = {
+    // Add your real Firebase config here
+    apiKey: "your-api-key",
+    authDomain: "your-project.firebaseapp.com",
+    projectId: "your-project-id",
+    storageBucket: "your-project.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "your-app-id"
+  };
+
+  // Initialize Firebase when not in demo mode
+  // firebaseApp = initializeApp(firebaseConfig);
+  // auth = getAuth(firebaseApp);
+  // db = getFirestore(firebaseApp);
 }
 
-// Initialize Auth with AsyncStorage persistence for React Native
-let auth;
-try {
-  auth = initializeAuth(firebaseApp, {
-    persistence: getReactNativePersistence(AsyncStorage)
-  });
-} catch (error) {
-  // Auth already initialized
-  auth = getAuth(firebaseApp);
-}
-
-// Initialize Firestore
-const db = getFirestore(firebaseApp);
-
-export { auth, db, firebaseApp };
+export { auth, db, firebaseApp, DEMO_MODE };
