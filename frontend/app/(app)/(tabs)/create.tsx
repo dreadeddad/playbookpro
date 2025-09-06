@@ -4,13 +4,11 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   TouchableOpacity,
-  TextInput,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import PlayCreator from '../../../components/PlayCreator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Create() {
